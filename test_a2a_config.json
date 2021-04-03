@@ -1,0 +1,64 @@
+{
+    "networks": {
+        "alpha": {
+            "bridges": {
+                "testnet": {
+                    "addr": "Amgru14RQMrwRM8TnnLrT3aa3TePJr2F4yfbqN81KffkXKXbw4oz",
+                    "oracle": "Amhg3DCFLQQRBM63i4aBtHmYZUjhDvU8vHD4boCHuexccEZ63AJc",
+                    "t_anchor": 240,
+                    "t_final": 60
+                }
+            },
+            "ip": "alpha1.aergo.io:7845",
+            "tokens": {
+                "aergo": {
+                    "addr": "",
+                    "pegs": {
+                        "testnet": "aergo"
+                    }
+                 }
+            }
+        },
+        "testnet": {
+            "bridges": {
+                "alpha": {
+                    "addr": "Amgru14RQMrwRM8TnnLrT3aa3TePJr2F4yfbqN81KffkXKXbw4oz",
+                    "oracle": "Amhg3DCFLQQRBM63i4aBtHmYZUjhDvU8vHD4boCHuexccEZ63AJc",
+                    "t_anchor": 300,
+                    "t_final": 0
+                }
+            },
+            "ip": "testnet-api.aergo.io:7845",
+            "tokens": {
+            }
+        }
+    },
+    "validators": [
+        {
+            "addr": "AmPrxvVSZKSNZUZShdz5BzhRYPPK58ycsijCp4vP5yuzeBk2wbCN",
+            "ip": "localhost:9841"
+        },
+        {
+            "addr": "AmPrxvVSZKSNZUZShdz5BzhRYPPK58ycsijCp4vP5yuzeBk2wbCN",
+            "ip": "localhost:9842"
+        },
+        {
+            "addr": "AmPrxvVSZKSNZUZShdz5BzhRYPPK58ycsijCp4vP5yuzeBk2wbCN",
+            "ip": "localhost:9843"
+        }
+    ],
+    "wallet": {
+        "default": {
+            "addr": "AmNPWDJMjU4g98Scm4AikW8JwQMGwWMztM7Qy8ggxNTkhgZMJHFp",
+            "keystore": "keystore/AmNPWDJMjU4g98Scm4AikW8JwQMGwWMztM7Qy8ggxNTkhgZMJHFp__2020-01-20T04:13:06__keystore.json"
+        },
+        "proposer": {
+            "addr": "AmPXCFudjn399bVXr6Fcwmvb7gVmUjjK7KpoAy9bnmEryJ1aBNkT",
+            "keystore": "keystore/AmPXCFudjn399bVXr6Fcwmvb7gVmUjjK7KpoAy9bnmEryJ1aBNkT__2020-01-20T04:11:09__keystore.json"
+        },
+        "validator": {
+            "addr": "AmPrxvVSZKSNZUZShdz5BzhRYPPK58ycsijCp4vP5yuzeBk2wbCN",
+            "keystore": "keystore/AmPrxvVSZKSNZUZShdz5BzhRYPPK58ycsijCp4vP5yuzeBk2wbCN__2020-01-20T04:12:56__keystore.json"
+        }
+    }
+}

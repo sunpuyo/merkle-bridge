@@ -16,6 +16,16 @@ deploy_test_bridge:
 	python3 -m aergo_bridge_operator.oracle_deployer -c './test_config.json' --net1 'mainnet' --net2 'sidechain2' --privkey_name "proposer" --local_test
 	python3 -m aergo_wallet.token_deployer
 
+deploy_a2a_bridge:
+	python3 -m aergo_bridge_operator.bridge_deployer -c './test_a2a_config.json' --net1 'alpha' --net2 'testnet' --privkey_name "proposer" --local_test
+	python3 -m aergo_bridge_operator.oracle_deployer -c './test_a2a_config.json' --net1 'alpha' --net2 'testnet' --privkey_name "proposer" --local_test
+
+a2a_proposer:
+	python3 -m aergo_bridge_operator.proposer_client -c './test_a2a_config.json' --net1 'alpha' --net2 'testnet' --privkey_name "proposer" --privkey_pwd "1234" --anchoring_on --auto_update --oracle_update
+
+a2a_validator:
+	python3 -m aergo_bridge_operator.validator_server -c './test_a2a_config.json' --net1 'alpha' --net2 'testnet' --validator_index 1 --privkey_name "validator" --local_test
+
 proposer:
 	python3 -m aergo_bridge_operator.proposer_client -c './test_config.json' --net1 'mainnet' --net2 'sidechain2' --privkey_name "proposer" --privkey_pwd "1234" --anchoring_on --auto_update --oracle_update
 
