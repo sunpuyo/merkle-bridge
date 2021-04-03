@@ -57,6 +57,12 @@ state.var {
     -- Registers minted balances per account reference : prevents minting more than what was locked
     -- (account ref string) -> (string uint)
     _mints = state.map(),
+    -- Registers freezed balances per account reference : user provides merkle proof of locked balance
+    -- (account ref string) -> (string uint)
+    _freezes = state.map(),
+    -- Registers unfreezed balances per account reference : prevents unfreezing more than was locked
+    -- (account ref string) -> (string uint)
+    _unfreezes = state.map(),
     -- _bridgeTokens keeps track of tokens that were received through the bridge
     -- (address) -> (address)
     _bridgeTokens = state.map(),
@@ -174,6 +180,13 @@ end
 
 --------------------- Bridge Operator Functions -------------------------
 
+function default()
+  contract.event("initializeVault", system.getSender(), system.getAmount())
+  -- needed to send the vault funds when starting the bridge
+  -- consider disabling after 1st transfer so users don't send 
+  -- funds by mistake
+end
+
 -- Replace the oracle with another one
 -- @type    call
 -- @param   newOracle (address) Aergo address of the new oracle
@@ -230,7 +243,7 @@ function tokensReceived(operator, from, value, receiver)
     return _lock(system.getSender(), value, receiver)
 end
 
--- mint a token locked on a bidged chain
+-- mint a token locked on a bridged chain
 -- anybody can mint, the receiver is the account who's locked balance is recorded
 -- @type    call
 -- @param   receiver (address) designated receiver in lock
@@ -348,6 +361,69 @@ function unlock(receiver, balance, tokenAddress, merkleProof)
     return amountToTransfer
 end
 
+-- freeze mainnet aergo
+-- @type    call
+-- @param   receiver (address) Aergo address of receiver
+-- @param   amount (ubig) number of aergo to freeze
+-- @event   freeze(owner, receiver, amount)
+function freeze(receiver, amount)
+  _typecheck(receiver, 'address')
+  _typecheck(amount, 'ubig')
+  -- passing amount is not necessary but system.getAmount() would have to be converted to bignum anyway.
+  assert(amount > bignum.number(0), "amount must be positive")
+  assert(system.getAmount() == bignum.tostring(amount), "for safety and clarity, amount must match the amount sent in the tx")
+
+  -- Add freezed amount to total
+  local accountRef = receiver
+  local old = _freezes[accountRef]
+  local freezedBalance
+  if old == nil then
+      freezedBalance = amount
+  else
+      freezedBalance = bignum.number(old) + amount
+  end
+  _freezes[accountRef] = bignum.tostring(freezedBalance)
+  contract.event("freeze", system.getSender(), receiver, amount)
+end
+
+
+-- unfreeze mainnet aergo
+-- anybody can unfreeze, the receiver is the account who's burnt balance is recorded
+-- @type    call
+-- @param   receiver (address) Aergo address of receiver
+-- @param   balance (ubig) total balance of aergo locked on another network
+-- @param   merkleProof ([]hex string without 0x) merkle proof of inclusion of freezed balance
+-- @return  (uint) unfreezed amount
+-- @event   unfreeze(unfreezer, receiver, amount)
+function unfreeze(receiver, balance, merkleProof)
+  _typecheck(receiver, 'address')
+  _typecheck(balance, 'ubig')
+  assert(balance > bignum.number(0), "unfreezable balance must be positive")
+
+  -- Verify merkle proof of freezed balance
+  local accountRef = receiver
+  local balanceStr = "\""..bignum.tostring(balance).."\""
+  if not verifyDepositProof("_freezes", accountRef, balanceStr, _anchorRoot:get(), merkleProof) then
+      error("failed to verify freezed balance merkle proof")
+  end
+
+  -- Calculate amount to unfreeze
+  local unfreezedSoFar = _unfreezes[accountRef]
+  local amountToTransfer
+  if unfreezedSoFar == nil then
+      amountToTransfer = balance
+  else
+      amountToTransfer = balance - bignum.number(unfreezedSoFar)
+  end
+  assert(amountToTransfer > bignum.number(0), "freeze Aergo on another network before unfreezing")
+  -- Record total amount unlocked so far
+  _unfreezes[accountRef] = bignum.tostring(balance)
+  -- Unfreeze Aer
+  contract.send(receiver, amountToTransfer)
+  
+  contract.event("unfreeze", system.getSender(), receiver, amountToTransfer)
+  return amountToTransfer
+end
 
 mintedToken = [[
 ------------------------------------------------------------------------------
@@ -574,4 +650,5 @@ abi.register_view(name, symbol, decimals, totalSupply, balanceOf, isApprovedForA
 
 ]]
 
-abi.register(bitIsSet, verifyProof, verifyDepositProof, oracleUpdate, newAnchor, tAnchorUpdate, tFinalUpdate, tokensReceived, mint, burn, unlock)
+abi.register(bitIsSet, verifyProof, verifyDepositProof, oracleUpdate, newAnchor, tAnchorUpdate, tFinalUpdate, tokensReceived, mint, burn, unlock, unfreeze)
+abi.payable(freeze, default)
