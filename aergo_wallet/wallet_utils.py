@@ -5,7 +5,7 @@ from typing import (
 )
 
 import aergo.herapy as herapy
-
+import base64
 from aergo.herapy.utils.encoding import (
     decode_b58_check,
 )
@@ -165,7 +165,11 @@ def wait_finalization(
     aergo: herapy.Aergo
 ) -> None:
     status = aergo.get_status()
-    lib = status.consensus_info.status['LibNo']
+    if 'LibNo' in status.consensus_info.status.keys():
+        lib = status.consensus_info.status['LibNo'] # dpos
+    else:
+        lib = status.best_block_height # raft
+
     height = status.best_block_height
     time.sleep(height - lib)
 

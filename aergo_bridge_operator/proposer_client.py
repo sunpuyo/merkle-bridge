@@ -287,14 +287,21 @@ class ProposerClient(threading.Thread):
         """ Wait until t_anchor has passed after merged height.
         Return the next finalized block after t_anchor to be the next anchor
         """
-        lib = self.hera_from.get_status().consensus_info.status['LibNo']
+        if 'LibNo' in self.hera_from.get_status().consensus_info.status.keys():
+            lib = self.hera_from.get_status().consensus_info.status['LibNo'] # dpos
+        else:
+            lib = self.hera_from.get_status().best_block_height #raft
         wait = (merged_height + self.t_anchor) - lib + 1
         while wait > 0:
             logger.info(
                 "\"\u23F0 waiting new anchor time : %ss ...\"", wait)
             self.monitor_settings_and_sleep(wait)
             # Wait lib > last merged block height + t_anchor
-            lib = self.hera_from.get_status().consensus_info.status['LibNo']
+            if 'LibNo' in self.hera_from.get_status().consensus_info.status.keys():
+                lib = self.hera_from.get_status().consensus_info.status['LibNo'] # dpos
+            else:
+                lib = self.hera_from.get_status().best_block_height # raft
+                
             wait = (merged_height + self.t_anchor) - lib + 1
         return lib
 

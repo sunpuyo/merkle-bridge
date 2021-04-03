@@ -286,7 +286,10 @@ class ValidatorService(BridgeOperatorServicer):
         """
         # 1- get the last block height and check anchor height > LIB
         # lib = best_height - finalized_from
-        lib = aergo_from.get_status().consensus_info.status['LibNo']
+        if 'LibNo' in aergo_from.get_status().consensus_info.status.keys():
+            lib = aergo_from.get_status().consensus_info.status['LibNo'] # dpos
+        else:
+            lib = aergo_from.get_status().best_block_height # raft
         if anchor.height > lib:
             return ("anchor height not finalized, got: {}, expected: {}"
                     .format(anchor.height, lib))
